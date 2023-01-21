@@ -1,4 +1,4 @@
-package org.example;
+package ch.asarix;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;

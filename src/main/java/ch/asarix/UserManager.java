@@ -1,4 +1,4 @@
-package org.example;
+package ch.asarix;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

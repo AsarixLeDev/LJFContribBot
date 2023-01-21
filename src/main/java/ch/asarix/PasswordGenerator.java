@@ -1,4 +1,4 @@
-package org.example;
+package ch.asarix;
 
 import java.util.ArrayList;
 import java.util.List;

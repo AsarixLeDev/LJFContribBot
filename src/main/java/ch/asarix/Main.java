@@ -1,4 +1,4 @@
-package org.example;
+package ch.asarix;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.example.commands.CommandHandler;
+import ch.asarix.commands.CommandHandler;
 
 import java.io.File;
 import java.io.IOException;

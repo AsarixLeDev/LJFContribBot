@@ -1,14 +1,14 @@
-package org.example.commands;
+package ch.asarix.commands;
 
+import ch.asarix.Main;
+import ch.asarix.PermLevel;
+import ch.asarix.Util;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import org.example.Main;
-import org.example.PermLevel;
-import org.example.UserManager;
-import org.example.Util;
+import ch.asarix.UserManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

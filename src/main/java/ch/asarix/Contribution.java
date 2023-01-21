@@ -1,14 +1,9 @@
-package org.example;
+package ch.asarix;
 
 import net.dv8tion.jda.api.entities.User;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public record Contribution(User user, String contribName, int amount, Date date, String commentary, long value, String id) {
     @Override

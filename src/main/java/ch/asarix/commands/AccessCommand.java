@@ -1,5 +1,8 @@
-package org.example.commands;
+package ch.asarix.commands;
 
+import ch.asarix.Main;
+import ch.asarix.PermLevel;
+import ch.asarix.UserManager;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -7,10 +10,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import org.example.Main;
-import org.example.PermLevel;
-import org.example.UserManager;
-import org.example.Util;
 import org.jetbrains.annotations.NotNull;
 
 public class AccessCommand extends Command {

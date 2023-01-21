@@ -1,4 +1,4 @@
-package org.example;
+package ch.asarix;
 
 public enum PermLevel {
     NONE,

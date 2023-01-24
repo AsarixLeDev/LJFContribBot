@@ -41,7 +41,8 @@ public abstract class Command {
         });
     }
 
-    public void onButton(ButtonInteractionEvent event, String id) {}
+    public void onButton(ButtonInteractionEvent event, String id) {
+    }
 
     public abstract PermLevel permLevel();
 
@@ -51,13 +52,12 @@ public abstract class Command {
         Object result = null;
         if (def instanceof String) {
             result = option.getAsString();
-        }
-        else if (def instanceof Double) {
+        } else if (def instanceof Double) {
             try {
                 result = option.getAsDouble();
-            } catch (IllegalStateException ignored) {}
-        }
-        else if (def instanceof Long) {
+            } catch (IllegalStateException ignored) {
+            }
+        } else if (def instanceof Long) {
             System.out.println("Getting long (" + name + ")");
             try {
                 result = option.getAsLong();
@@ -68,8 +68,7 @@ public abstract class Command {
                 if (parsed >= 0)
                     result = parsed;
             }
-        }
-        else if (def instanceof Integer) {
+        } else if (def instanceof Integer) {
             try {
                 result = option.getAsInt();
             } catch (IllegalStateException | NumberFormatException e) {
@@ -79,17 +78,16 @@ public abstract class Command {
                 if (parsed >= 0)
                     result = parsed;
             }
-        }
-        else if (def instanceof User) {
+        } else if (def instanceof User) {
             try {
                 result = option.getAsUser();
-            } catch (IllegalStateException ignored) {}
+            } catch (IllegalStateException ignored) {
+            }
         }
         if (result == null) {
             if (def == null) {
                 throw new RuntimeException("L'argument " + name + " est invalide !");
-            }
-            else result = def;
+            } else result = def;
         }
 
         if (!(result.getClass().isInstance(def))) {
@@ -103,26 +101,25 @@ public abstract class Command {
             text = text.toLowerCase();
             int bIndex = text.indexOf("b");
             double bValue = bIndex < 0 ? 0 : Double.parseDouble(text.substring(0, bIndex));
-            text = text.substring(bIndex+1);
+            text = text.substring(bIndex + 1);
 
             if (text.isEmpty()) return toLong(bValue, 0, 0, 0);
 
             int mIndex = text.indexOf("m");
             double mValue = mIndex < 0 ? 0 : Double.parseDouble(text.substring(0, mIndex));
-            text = text.substring(mIndex+1);
+            text = text.substring(mIndex + 1);
 
             if (text.isEmpty()) return toLong(bValue, mValue, 0, 0);
 
             int kIndex = text.indexOf("k");
             double kValue = kIndex < 0 ? 0 : Double.parseDouble(text.substring(0, kIndex));
-            text = text.substring(kIndex+1);
+            text = text.substring(kIndex + 1);
 
             if (text.isEmpty()) return toLong(bValue, mValue, kValue, 0);
 
             double cValue = Long.parseLong(text);
             return toLong(bValue, mValue, kValue, cValue);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return -1;
         }
     }

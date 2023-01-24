@@ -2,6 +2,7 @@ package ch.asarix.commands;
 
 import ch.asarix.Main;
 import ch.asarix.PermLevel;
+import ch.asarix.UserManager;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -9,7 +10,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ch.asarix.UserManager;
 import org.jetbrains.annotations.NotNull;
 
 public class AdminCommand extends Command {

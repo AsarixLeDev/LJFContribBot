@@ -5,7 +5,54 @@ import net.dv8tion.jda.api.entities.User;
 import java.util.Date;
 import java.util.Objects;
 
-public record Contribution(User user, String contribName, int amount, Date date, String commentary, long value, String id) {
+public class Contribution {
+
+    private final User user;
+    private final String contribName;
+    private final int amount;
+    private final Date date;
+    private final String commentary;
+    private final long value;
+    private final String id;
+
+    public Contribution(User user, String contribName, int amount, Date date, String commentary, long value, String id) {
+        this.user = user;
+        this.contribName = contribName;
+        this.amount = amount;
+        this.date = date;
+        this.commentary = commentary;
+        this.value = value;
+        this.id = id;
+    }
+
+    public User user() {
+        return user;
+    }
+
+    public String contribName() {
+        return contribName;
+    }
+
+    public int amount() {
+        return amount;
+    }
+
+    public Date date() {
+        return date;
+    }
+
+    public String commentary() {
+        return commentary;
+    }
+
+    public long value() {
+        return value;
+    }
+
+    public String id() {
+        return id;
+    }
+
     @Override
     public String toString() {
         return "Contribution{" +

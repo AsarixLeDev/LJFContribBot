@@ -1,5 +1,9 @@
 package ch.asarix.commands;
 
+import ch.asarix.Contribution;
+import ch.asarix.Main;
+import ch.asarix.PermLevel;
+import ch.asarix.Util;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -7,10 +11,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ch.asarix.Contribution;
-import ch.asarix.Main;
-import ch.asarix.PermLevel;
-import ch.asarix.Util;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -43,9 +43,11 @@ public class ContribsCommand extends Command {
         StringBuilder contribBuilder = new StringBuilder(user.getAsMention() + "\n\n`\uD83C\uDFC6` #" + (place + 1) + "   -   `\uD83D\uDCB0` **" + nf.format(Main.getTotalContribValue(user)) + "**\n\n");
         for (Contribution contribution : contribs) {
             String dateStr = df.format(contribution.date());
-            String line = "(" + dateStr + ") " + contribution.contribName();
+            String line = "(" + dateStr + ")";
+            if (!contribution.contribName().equalsIgnoreCase("money"))
+                line += " " + contribution.contribName();
             if (contribution.amount() > 1)
-                line +=  " " + "**x" + contribution.amount() + "**";
+                line += " " + "**x" + contribution.amount() + "**";
             if (!contribution.commentary().isEmpty())
                 line += " - " + contribution.commentary();
             contribBuilder.append("` ").append(i++)

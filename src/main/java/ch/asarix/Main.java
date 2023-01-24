@@ -1,5 +1,6 @@
 package ch.asarix;
 
+import ch.asarix.commands.CommandHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
@@ -8,7 +9,6 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import ch.asarix.commands.CommandHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,11 +17,9 @@ import java.util.*;
 public class Main extends ListenerAdapter {
 
     public static JDA jda;
-    private static File file;
-
     public static User asarix;
-
     public static Map<User, List<Contribution>> map = new HashMap<>();
+    private static File file;
 
     public static void main(String[] args) {
         JsonNode node;
@@ -36,7 +34,7 @@ public class Main extends ListenerAdapter {
         String botToken;
         try {
             botToken = node.get("BOT_TOKEN").asText();
-            if (botToken.isBlank()) throw new NullPointerException();
+            if (Util.isBlank(botToken)) throw new NullPointerException();
         } catch (NullPointerException e) {
             System.err.println("Please specify the bot token in the variable file !");
             createVariableFile();
@@ -51,8 +49,7 @@ public class Main extends ListenerAdapter {
             System.out.println("Bot is shutting down...");
             try {
                 shutDown();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }));
@@ -71,7 +68,6 @@ public class Main extends ListenerAdapter {
                 Map.Entry<String, JsonNode> entry = it.next();
                 User user = jda.retrieveUserById(entry.getKey()).complete();
                 ArrayNode userNode = (ArrayNode) entry.getValue();
-
                 List<Contribution> contribs = new ArrayList<>();
 
                 for (int i = 0; i < userNode.size(); i++) {
@@ -145,11 +141,9 @@ public class Main extends ListenerAdapter {
             ObjectNode objectNode;
             if (node instanceof MissingNode) {
                 objectNode = new ObjectNode(JsonNodeFactory.instance);
-            }
-            else if (node instanceof ObjectNode) {
+            } else if (node instanceof ObjectNode) {
                 objectNode = (ObjectNode) node;
-            }
-            else {
+            } else {
                 throw new RuntimeException("could not read file " + file.getName());
             }
             ArrayNode userNode = new ArrayNode(JsonNodeFactory.instance);
@@ -178,12 +172,12 @@ public class Main extends ListenerAdapter {
     }
 
     public static List<Contribution> getContribs(User user) {
-        if (!map.containsKey(user)) return List.of();
+        if (!map.containsKey(user)) return new ArrayList<>();
         return map.get(user);
     }
 
     public static List<User> getContribers() {
-        return List.of(map.keySet().toArray(new User[0]));
+        return new ArrayList<>(map.keySet());
     }
 
     public static long getTotalContribValue(User user) {
@@ -223,14 +217,12 @@ public class Main extends ListenerAdapter {
 
     public static Contribution createContribution(User user, String contribName, int amount, Date date, String commentary, long value) {
         List<Contribution> contribs = getContribs(user);
-        var ref = new Object() {
-            String newId;
-        };
+        String[] newId = {""};
         do {
-            ref.newId = new PasswordGenerator.PasswordGeneratorBuilder().useLower(true).useUpper(true).build().generate(8);
+            newId[0] = new PasswordGenerator.PasswordGeneratorBuilder().useLower(true).useUpper(true).build().generate(8);
         }
-        while (contribs.stream().anyMatch(contribution -> contribution.id().equals(ref.newId)));
-        Contribution contribution = new Contribution(user, contribName, amount, date, commentary, value, ref.newId);
+        while (contribs.stream().anyMatch(contribution -> contribution.id().equals(newId[0])));
+        Contribution contribution = new Contribution(user, contribName, amount, date, commentary, value, newId[0]);
         save(contribution);
         return contribution;
     }

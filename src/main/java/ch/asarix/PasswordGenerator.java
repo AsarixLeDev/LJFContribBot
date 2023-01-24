@@ -10,10 +10,10 @@ public final class PasswordGenerator {
     private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String DIGITS = "0123456789";
     private static final String PUNCTUATION = "!@#$%&*()_+-=[]|,./?><";
-    private boolean useLower;
-    private boolean useUpper;
-    private boolean useDigits;
-    private boolean usePunctuation;
+    private final boolean useLower;
+    private final boolean useUpper;
+    private final boolean useDigits;
+    private final boolean usePunctuation;
 
     private PasswordGenerator() {
         throw new UnsupportedOperationException("Empty constructor is not supported.");
@@ -24,83 +24,6 @@ public final class PasswordGenerator {
         this.useUpper = builder.useUpper;
         this.useDigits = builder.useDigits;
         this.usePunctuation = builder.usePunctuation;
-    }
-
-    public static class PasswordGeneratorBuilder {
-
-        private boolean useLower;
-        private boolean useUpper;
-        private boolean useDigits;
-        private boolean usePunctuation;
-
-        public PasswordGeneratorBuilder() {
-            this.useLower = false;
-            this.useUpper = false;
-            this.useDigits = false;
-            this.usePunctuation = false;
-        }
-
-        /**
-         * Set true in case you would like to include lower characters
-         * (abc...xyz). Default false.
-         *
-         * @param useLower true in case you would like to include lower
-         * characters (abc...xyz). Default false.
-         * @return the builder for chaining.
-         */
-        public PasswordGeneratorBuilder useLower(boolean useLower) {
-            this.useLower = useLower;
-            return this;
-        }
-
-        /**
-         * Set true in case you would like to include upper characters
-         * (ABC...XYZ). Default false.
-         *
-         * @param useUpper true in case you would like to include upper
-         * characters (ABC...XYZ). Default false.
-         * @return the builder for chaining.
-         */
-        public PasswordGeneratorBuilder useUpper(boolean useUpper) {
-            this.useUpper = useUpper;
-            return this;
-        }
-
-        /**
-         * Set true in case you would like to include digit characters (123..).
-         * Default false.
-         *
-         * @param useDigits true in case you would like to include digit
-         * characters (123..). Default false.
-         * @return the builder for chaining.
-         */
-        public PasswordGeneratorBuilder useDigits(boolean useDigits) {
-            this.useDigits = useDigits;
-            return this;
-        }
-
-        /**
-         * Set true in case you would like to include punctuation characters
-         * (!@#..). Default false.
-         *
-         * @param usePunctuation true in case you would like to include
-         * punctuation characters (!@#..). Default false.
-         * @return the builder for chaining.
-         */
-        public PasswordGeneratorBuilder usePunctuation(boolean usePunctuation) {
-            this.usePunctuation = usePunctuation;
-            return this;
-        }
-
-        /**
-         * Get an object to use.
-         *
-         * @return the {@link PasswordGenerator}
-         * object.
-         */
-        public PasswordGenerator build() {
-            return new PasswordGenerator(this);
-        }
     }
 
     /**
@@ -144,5 +67,82 @@ public final class PasswordGenerator {
             password.append(charCategory.charAt(position));
         }
         return new String(password);
+    }
+
+    public static class PasswordGeneratorBuilder {
+
+        private boolean useLower;
+        private boolean useUpper;
+        private boolean useDigits;
+        private boolean usePunctuation;
+
+        public PasswordGeneratorBuilder() {
+            this.useLower = false;
+            this.useUpper = false;
+            this.useDigits = false;
+            this.usePunctuation = false;
+        }
+
+        /**
+         * Set true in case you would like to include lower characters
+         * (abc...xyz). Default false.
+         *
+         * @param useLower true in case you would like to include lower
+         *                 characters (abc...xyz). Default false.
+         * @return the builder for chaining.
+         */
+        public PasswordGeneratorBuilder useLower(boolean useLower) {
+            this.useLower = useLower;
+            return this;
+        }
+
+        /**
+         * Set true in case you would like to include upper characters
+         * (ABC...XYZ). Default false.
+         *
+         * @param useUpper true in case you would like to include upper
+         *                 characters (ABC...XYZ). Default false.
+         * @return the builder for chaining.
+         */
+        public PasswordGeneratorBuilder useUpper(boolean useUpper) {
+            this.useUpper = useUpper;
+            return this;
+        }
+
+        /**
+         * Set true in case you would like to include digit characters (123..).
+         * Default false.
+         *
+         * @param useDigits true in case you would like to include digit
+         *                  characters (123..). Default false.
+         * @return the builder for chaining.
+         */
+        public PasswordGeneratorBuilder useDigits(boolean useDigits) {
+            this.useDigits = useDigits;
+            return this;
+        }
+
+        /**
+         * Set true in case you would like to include punctuation characters
+         * (!@#..). Default false.
+         *
+         * @param usePunctuation true in case you would like to include
+         *                       punctuation characters (!@#..). Default false.
+         * @return the builder for chaining.
+         */
+        public PasswordGeneratorBuilder usePunctuation(boolean usePunctuation) {
+            this.usePunctuation = usePunctuation;
+            return this;
+        }
+
+        /**
+         * Get an object to use.
+         *
+         * @return the {@link PasswordGenerator}
+         * object.
+         */
+        public PasswordGenerator build() {
+            return new PasswordGenerator(this);
+        }
     }
 }

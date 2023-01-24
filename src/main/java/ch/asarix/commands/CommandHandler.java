@@ -52,6 +52,6 @@ public class CommandHandler extends ListenerAdapter {
         if (command == null) {
             return;
         }
-        command.onButton(event, id.substring(sepIndex+1));
+        command.onButton(event, id.substring(sepIndex + 1));
     }
 }

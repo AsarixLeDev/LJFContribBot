@@ -1,5 +1,6 @@
 package ch.asarix.commands;
 
+import ch.asarix.Main;
 import ch.asarix.PermLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -12,7 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
-import ch.asarix.Main;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -42,16 +42,14 @@ public class LeaderboardCommand extends Command {
         int page = Integer.parseInt(elements[1]);
         int nextPage = 1;
 
-        int maxPage = (int)Math.ceil(Main.getContribers().size() / 10d);
+        int maxPage = (int) Math.ceil(Main.getContribers().size() / 10d);
         if (elements[0].equalsIgnoreCase("prev")) {
             if (page == 1) {
                 nextPage = maxPage;
-            }
-            else {
+            } else {
                 nextPage = page - 1;
             }
-        }
-        else if (elements[0].equalsIgnoreCase("next")) {
+        } else if (elements[0].equalsIgnoreCase("next")) {
             if (page < maxPage) {
                 nextPage = page + 1;
             }
@@ -65,17 +63,17 @@ public class LeaderboardCommand extends Command {
     }
 
     private MessageContent page(int page) {
-        int start = (page-1) * 10;
+        int start = (page - 1) * 10;
         int end = page * 10;
 
         List<User> top = Main.getContribers();
         int totalSize = top.size();
         if (start >= top.size()) {
-            return new MessageContent("Page trop grande ! Max : " + (int)Math.ceil(totalSize / 10d)).setAuthor(Main.asarix);
+            return new MessageContent("Page trop grande ! Max : " + (int) Math.ceil(totalSize / 10d)).setAuthor(Main.asarix);
         }
         int max = Math.min(end, top.size());
         top = top.stream().sorted(Comparator.comparingLong(Main::getTotalContribValue).reversed()).toList().subList(start, max);
-        int i = 1 + (page-1) * 10;
+        int i = 1 + (page - 1) * 10;
         NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
         EmbedBuilder embedBuilder = new EmbedBuilder()
                 .setTitle("Leaderboard des contribs")
@@ -92,7 +90,7 @@ public class LeaderboardCommand extends Command {
             prevContrib = contrib;
             prevIndex = index;
         }
-        builder.append("\nPage ").append(page).append("/").append((int)Math.ceil(totalSize / 10d));
+        builder.append("\nPage ").append(page).append("/").append((int) Math.ceil(totalSize / 10d));
         embedBuilder.setDescription(builder.toString());
         return new MessageContent(embedBuilder)
                 .addPrimaryButton("prev-" + page, Emoji.fromUnicode("U+25C0"), this)

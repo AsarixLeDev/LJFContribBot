@@ -1,11 +1,11 @@
 package ch.asarix.commands;
 
+import ch.asarix.Main;
 import ch.asarix.PermLevel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import ch.asarix.Main;
 import org.jetbrains.annotations.NotNull;
 
 public class SaveCommand extends Command {

@@ -34,8 +34,8 @@ public class UserManager {
             File file = Main.getFile("access.json");
             ObjectNode oNode;
             JsonNode node = mapper.readTree(file);
-            if (node instanceof ObjectNode n)
-                oNode = n;
+            if (node instanceof ObjectNode)
+                oNode = (ObjectNode) node;
             else
                 oNode = new ObjectMapper().createObjectNode();
             oNode.put(user.getName(), user.getIdLong());
@@ -76,8 +76,8 @@ public class UserManager {
             File file = Main.getFile("admin.json");
             ObjectNode oNode;
             JsonNode node = mapper.readTree(file);
-            if (node instanceof ObjectNode n)
-                oNode = n;
+            if (node instanceof ObjectNode)
+                oNode = (ObjectNode) node;
             else
                 oNode = new ObjectMapper().createObjectNode();
             oNode.put(user.getName(), user.getIdLong());

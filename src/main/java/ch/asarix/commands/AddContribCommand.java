@@ -1,5 +1,9 @@
 package ch.asarix.commands;
 
+import ch.asarix.Contribution;
+import ch.asarix.Main;
+import ch.asarix.PermLevel;
+import ch.asarix.Util;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -8,10 +12,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import ch.asarix.Contribution;
-import ch.asarix.Main;
-import ch.asarix.PermLevel;
-import ch.asarix.Util;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -19,7 +19,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class AddContribCommand extends Command {
@@ -34,18 +33,18 @@ public class AddContribCommand extends Command {
         if (dateStr == null) {
             date = new Date();
         } else {
-            List<String> patterns = List.of(
+            String[] patterns = {
                     "yyyy-MM-dd HH:mm:ss",
                     "yyyy-MM-dd HH:mm",
                     "yyyy-MM-dd HH",
                     "yyyy-MM-dd",
                     "dd/MM/yyyy"
-            );
+            };
 
             int index = 0;
             boolean success = false;
             do {
-                formatter = new SimpleDateFormat(patterns.get(index++));
+                formatter = new SimpleDateFormat(patterns[index++]);
                 try {
                     date = formatter.parse(dateStr);
                     success = true;

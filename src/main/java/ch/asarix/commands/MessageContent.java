@@ -12,8 +12,8 @@ import java.util.List;
 
 public class MessageContent {
 
-    private EmbedBuilder content;
     private final List<Button> buttons;
+    private final EmbedBuilder content;
 
     public MessageContent(String content) {
         this(new EmbedBuilder().setDescription(content));

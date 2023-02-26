@@ -1,9 +1,11 @@
-package ch.asarix.commands;
+package ch.asarix.contributions;
 
 import ch.asarix.Contribution;
 import ch.asarix.Main;
 import ch.asarix.PermLevel;
 import ch.asarix.Util;
+import ch.asarix.commands.Command;
+import ch.asarix.commands.MessageContent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -23,8 +25,9 @@ import java.util.Locale;
 public class ContribsCommand extends Command {
     @Override
     public MessageContent run(@NotNull SlashCommandInteractionEvent event) throws Exception {
+        ContribManager contribManager = ContribManager.get();
         User user = getOption(event, "user", event.getUser());
-        List<User> users = Main.getContribers().stream().sorted(Comparator.comparingLong(Main::getTotalContribValue).reversed()).toList();
+        List<User> users = contribManager.top();
         int place = users.indexOf(user);
         if (place < 0) {
             EmbedBuilder builder = Util.authorEmbed(Main.asarix)
@@ -33,14 +36,19 @@ public class ContribsCommand extends Command {
                     .setColor(Color.ORANGE);
             return new MessageContent(builder).setAuthor(Main.asarix);
         }
-        List<Contribution> contribs = Main.getContribs(user).stream().sorted(Comparator.comparingLong(Contribution::dateMillis).reversed()).toList();
+        List<Contribution> contribs = contribManager.getContribs(user)
+                .stream()
+                .sorted(Comparator.comparingLong(Contribution::dateMillis).reversed())
+                .toList();
         int i = 1;
         NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         EmbedBuilder embedBuilder = Util.authorEmbed(Main.asarix)
                 .setTitle("Contributions")
                 .setColor(Color.BLUE);
-        StringBuilder contribBuilder = new StringBuilder(user.getAsMention() + "\n\n`\uD83C\uDFC6` #" + (place + 1) + "   -   `\uD83D\uDCB0` **" + nf.format(Main.getTotalContribValue(user)) + "**\n\n");
+        StringBuilder contribBuilder = new StringBuilder(user.getAsMention()
+                + "\n\n`\uD83C\uDFC6` #" + (place + 1)
+                + "   -   `\uD83D\uDCB0` **" + nf.format(contribManager.getTotalContribValue(user)) + "**\n\n");
         for (Contribution contribution : contribs) {
             String dateStr = df.format(contribution.date());
             String line = "(" + dateStr + ")";
@@ -56,7 +64,9 @@ public class ContribsCommand extends Command {
                     .append("** ").append(line).append("\n");
             //embedBuilder.addField(i++ + ". " + nf.format(contribution.value()), line, false);
         }
-        return new MessageContent(embedBuilder.setDescription(contribBuilder.toString())).setAuthor(Main.asarix);
+        return new MessageContent(embedBuilder.setDescription(contribBuilder.toString()))
+                .addSelectMenu("sorttype", "test", "Valeur", "Date")
+                .setAuthor(Main.asarix);
     }
 
     @Override

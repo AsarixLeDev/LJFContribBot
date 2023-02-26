@@ -1,9 +1,8 @@
-package ch.asarix.commands;
+package ch.asarix.contributions;
 
-import ch.asarix.Contribution;
-import ch.asarix.Main;
-import ch.asarix.PermLevel;
-import ch.asarix.Util;
+import ch.asarix.*;
+import ch.asarix.commands.Command;
+import ch.asarix.commands.MessageContent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -16,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -27,42 +25,16 @@ public class AddContribCommand extends Command {
         User user = getOption(event, "user", event.getUser());
         String name = getOption(event, "name", "Money");
         int amount = getOption(event, "amount", 1);
-        Date date = null;
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String dateStr = getOption(event, "date", formatter.format(new Date()));
-        if (dateStr == null) {
-            date = new Date();
-        } else {
-            String[] patterns = {
-                    "yyyy-MM-dd HH:mm:ss",
-                    "yyyy-MM-dd HH:mm",
-                    "yyyy-MM-dd HH",
-                    "yyyy-MM-dd",
-                    "dd/MM/yyyy"
-            };
-
-            int index = 0;
-            boolean success = false;
-            do {
-                formatter = new SimpleDateFormat(patterns[index++]);
-                try {
-                    date = formatter.parse(dateStr);
-                    success = true;
-                } catch (ParseException ignored) {
-                }
-            }
-            while (!success);
-        }
-        if (date == null) {
-            return new MessageContent("Date invalide ! Veuillez préciser le pattern minimum : yyyy-MM-dd").setAuthor(Main.asarix);
-        }
+        Date date = Util.tryParseDate(dateStr);
 
         String commentary = getOption(event, "commentary", "");
         long value = getOption(event, "value", -1L);
         if (value < 0) {
             return new MessageContent(event.getOption("value").getAsString() + " : Valeur invalide !").setAuthor(Main.asarix);
         }
-        Contribution contribution = Main.createContribution(user, name, amount, date, commentary, value);
+        Contribution contribution = ContribManager.get().createContribution(user, name, amount, date, commentary, value);
         NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         EmbedBuilder builder = Util.authorEmbed(Main.asarix)
@@ -98,9 +70,14 @@ public class AddContribCommand extends Command {
     public void onButton(ButtonInteractionEvent event, String id) {
         event.deferReply(true).queue();
         String[] elements = id.split("-");
-        User user = Main.jda.retrieveUserById(elements[0]).complete();
-        Contribution contribution = Main.getContrib(user, elements[1]);
-        Main.remove(contribution);
+        User user = UserManager.getUser(elements[0]);
+        if (user == null) {
+            event.getHook().sendMessage("Could not find user with id : " + elements[0]).queue();
+            return;
+        }
+        ContribManager contribManager = ContribManager.get();
+        Contribution contribution = contribManager.getContrib(user, elements[1]);
+        contribManager.remove(contribution);
         event.getHook().sendMessage("Contrib de " + user.getAsMention() + " supprimée !").queue();
     }
 

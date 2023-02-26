@@ -10,7 +10,11 @@ import java.io.IOException;
 import java.util.*;
 
 public class UserManager {
+
+    private static final Map<Long, User> userCache = new HashMap<>();
+
     public static boolean hasAccess(User user) {
+        userCache.put(user.getIdLong(), user);
         try {
             JsonNode node = new ObjectMapper().readTree(Main.getFile("access.json"));
             Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
@@ -28,6 +32,7 @@ public class UserManager {
     }
 
     public static void addAccess(User user) {
+        userCache.put(user.getIdLong(), user);
         if (hasAccess(user)) return;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -52,6 +57,7 @@ public class UserManager {
     }
 
     public static boolean hasAdmin(User user) {
+        userCache.put(user.getIdLong(), user);
         try {
             JsonNode node = new ObjectMapper().readTree(Main.getFile("admin.json"));
             Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
@@ -69,6 +75,7 @@ public class UserManager {
     }
 
     public static void addAdmin(User user) {
+        userCache.put(user.getIdLong(), user);
         if (hasAdmin(user)) return;
         addAccess(user);
         try {
@@ -106,7 +113,9 @@ public class UserManager {
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> entry = fields.next();
             long id = entry.getValue().asLong();
-            String userName = Main.jda.retrieveUserById(id).complete().getName();
+            User user = getUser(id);
+            if (user == null) continue;
+            String userName = user.getName();
             ids.put(userName, id);
         }
         ObjectMapper mapper = new ObjectMapper();
@@ -127,7 +136,7 @@ public class UserManager {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = fields.next();
                 long id = entry.getValue().asLong();
-                access.add(Main.jda.retrieveUserById(id).complete());
+                access.add(getUser(id));
             }
             return access;
         } catch (IOException e) {
@@ -144,7 +153,7 @@ public class UserManager {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = fields.next();
                 long id = entry.getValue().asLong();
-                access.add(Main.jda.retrieveUserById(id).complete());
+                access.add(getUser(id));
             }
             return access;
         } catch (IOException e) {
@@ -154,10 +163,31 @@ public class UserManager {
     }
 
     public static boolean hasPerm(User user, PermLevel permLevel) {
+        userCache.put(user.getIdLong(), user);
         if (permLevel == PermLevel.NONE)
             return true;
         if (permLevel == PermLevel.ACCESS)
             return hasAccess(user);
         return hasAdmin(user);
+    }
+
+    public static User getUser(long id) {
+        if (userCache.containsKey(id))
+            return userCache.get(id);
+        User user = Main.jda.retrieveUserById(id).complete();
+        if (user == null) return null;
+        userCache.put(id, user);
+        return user;
+    }
+
+    public static User getUser(String id) {
+        long idLong;
+        try {
+            idLong = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            System.err.println("Wrong id : " + id);
+            return null;
+        }
+        return getUser(idLong);
     }
 }

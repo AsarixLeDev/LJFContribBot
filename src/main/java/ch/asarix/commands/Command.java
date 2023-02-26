@@ -34,7 +34,7 @@ public abstract class Command {
             }
             if (instant != null) {
 //                Message message = new MessageCreateBuilder().addEmbeds(instant.build()).setActionRow();
-                event.getHook().sendMessage(instant.build()).queue();
+                event.getHook().sendMessage(instant.build()).queue(instant::startCd);
 //                event.getHook().sendMessageEmbeds(instant.getContent().build()).queue();
             }
             return "Done.";
@@ -50,7 +50,7 @@ public abstract class Command {
         OptionMapping option = event.getOption(name);
         if (option == null) return def;
         Object result = null;
-        if (def instanceof String) {
+        if (def == null || def instanceof String) {
             result = option.getAsString();
         } else if (def instanceof Double) {
             try {
@@ -86,12 +86,14 @@ public abstract class Command {
         }
         if (result == null) {
             if (def == null) {
-                throw new RuntimeException("L'argument " + name + " est invalide !");
+                return null;
             } else result = def;
         }
 
-        if (!(result.getClass().isInstance(def))) {
-            throw new RuntimeException("L'argument doit être de type " + def.getClass().getSimpleName());
+        if (def != null) {
+            if (!(result.getClass().isInstance(def))) {
+                throw new RuntimeException("L'argument doit être de type " + def.getClass().getSimpleName());
+            }
         }
         return (T) result;
     }

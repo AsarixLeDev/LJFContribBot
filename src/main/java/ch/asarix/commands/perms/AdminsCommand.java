@@ -1,9 +1,11 @@
-package ch.asarix.commands;
+package ch.asarix.commands.perms;
 
 import ch.asarix.Main;
 import ch.asarix.PermLevel;
 import ch.asarix.UserManager;
 import ch.asarix.Util;
+import ch.asarix.commands.Command;
+import ch.asarix.commands.MessageContent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

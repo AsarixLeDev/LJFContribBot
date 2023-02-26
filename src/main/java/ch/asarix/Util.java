@@ -3,8 +3,11 @@ package ch.asarix;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 
+import java.text.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class Util {
     public static EmbedBuilder authorEmbed(User user) {
@@ -42,5 +45,47 @@ public class Util {
             contribs.add((Contribution) object);
         }
         return contribs;
+    }
+
+    public static Date tryParseDate(String dateStr) {
+        if (dateStr == null) return null;
+        SimpleDateFormat formatter;
+        Date date = null;
+        String[] patterns = {
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd HH:mm",
+                "yyyy-MM-dd HH",
+                "yyyy-MM-dd",
+                "dd/MM/yyyy"
+        };
+        for (String pattern : patterns) {
+            formatter = new SimpleDateFormat(pattern);
+            try {
+                date = formatter.parse(dateStr);
+                break;
+            } catch (ParseException ignored) {
+            }
+        }
+        return date;
+    }
+
+    public static String round(double numb, int dec) {
+        double x = Math.pow(10.0, dec);
+        double roundOff = Math.round(numb * x) / x;
+        return f(roundOff);
+    }
+
+    private static String f(double numb) {
+        DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.US);
+        DecimalFormatSymbols symbols = formatter.getDecimalFormatSymbols();
+
+        symbols.setGroupingSeparator(' ');
+        formatter.setDecimalFormatSymbols(symbols);
+        return formatter.format(numb);
+    }
+
+    public static String firstCap(String word) {
+        String fLetter = word.substring(0, 1).toUpperCase();
+        return fLetter + word.substring(1).toLowerCase();
     }
 }

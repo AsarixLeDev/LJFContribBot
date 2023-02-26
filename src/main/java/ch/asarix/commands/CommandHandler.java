@@ -1,5 +1,14 @@
 package ch.asarix.commands;
 
+import ch.asarix.commands.perms.AccessCommand;
+import ch.asarix.commands.perms.AdminCommand;
+import ch.asarix.commands.perms.AdminsCommand;
+import ch.asarix.contributions.*;
+import ch.asarix.leaderboards.GuildLeaderboardCommand;
+import ch.asarix.seasons.CreateSeasonCommand;
+import ch.asarix.seasons.SeasonCommand;
+import ch.asarix.seasons.SeasonLeaderboardCommand;
+import ch.asarix.stats.WeightCommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -22,6 +31,13 @@ public class CommandHandler extends ListenerAdapter {
         registerCommand(new AccessCommand(), guild);
         registerCommand(new AdminCommand(), guild);
         registerCommand(new AdminsCommand(), guild);
+        registerCommand(new SaveCommand(), guild);
+        registerCommand(new FetchCommand(), guild);
+        registerCommand(new CreateSeasonCommand(), guild);
+        registerCommand(new SeasonCommand(), guild);
+        registerCommand(new SeasonLeaderboardCommand(), guild);
+        registerCommand(new WeightCommand(), guild);
+        registerCommand(new GuildLeaderboardCommand(), guild);
     }
 
     private void registerCommand(Command command, Guild guild) {

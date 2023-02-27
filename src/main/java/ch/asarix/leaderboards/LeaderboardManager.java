@@ -1,9 +1,6 @@
 package ch.asarix.leaderboards;
 
-import ch.asarix.DataManager;
-import ch.asarix.JsonUtil;
-import ch.asarix.UUIDManager;
-import ch.asarix.UserManager;
+import ch.asarix.*;
 import ch.asarix.commands.MessageContent;
 import ch.asarix.stats.Stat;
 import ch.asarix.stats.Stats;
@@ -12,9 +9,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterators;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class LeaderboardManager extends DataManager {
 
@@ -119,6 +122,76 @@ public class LeaderboardManager extends DataManager {
         return new MessageContent(builder);
     }
 
+    public void displayRoles(Stats stats, List<Stat> toInclude) {
+        Guild guild = Main.jda.getGuildById("604823789188022301");
+        if (guild == null) return;
+        System.out.println("got guild");
+        Role firstRole = guild.getRoleById("744303376962945034");
+        if (firstRole == null) {
+            System.err.println("Unable to find firstRole");
+            return;
+        }
+        Role secondRole = guild.getRoleById("744562546807144508");
+        if (secondRole == null) {
+            System.err.println("Unable to find secondRole");
+            return;
+        }
+        Role thirdRole = guild.getRoleById("744564749307740200");
+        if (thirdRole == null) {
+            System.err.println("Unable to find thirdRole");
+            return;
+        }
+        Stat bestStat = null;
+        int bestPosition = 6;
+        for (Stat stat : stats.getStats().keySet()) {
+            if (!toInclude.contains(stat)) continue;
+            Leaderboard leaderboard = getLatestLeaderboard(stat);
+            int place = leaderboard.getPlace(stats.getUuid());
+            if (place > 0 && place < bestPosition) {
+                bestPosition = place;
+                bestStat = stat;
+            }
+        }
+//        System.out.println(bestPosition);
+        if (bestPosition > 3) return;
+//        System.out.println("pos ok");
+        int pos = bestPosition;
+        Stat stat = bestStat;
+        User user = UserManager.getUserByUuid(stats.getUuid());
+        if (user == null) return;
+        System.out.println("user ok");
+        Member member = guild.getMember(user);
+        if (member == null) return;
+        System.out.println("member ok");
+        CompletableFuture<Void> firstRemove = CompletableFuture.runAsync(() -> guild.removeRoleFromMember(member, firstRole).complete());
+        CompletableFuture<Void> secRemove = CompletableFuture.runAsync(() -> guild.removeRoleFromMember(member, secondRole).complete());
+        CompletableFuture<Void> thirdRemove = CompletableFuture.runAsync(() -> guild.removeRoleFromMember(member, thirdRole).complete());
+        CompletableFuture.allOf(firstRemove, secRemove, thirdRemove).thenRun(() -> {
+            if (pos == 1) {
+                guild.addRoleToMember(member, firstRole).queue();
+            } else if (pos == 2) {
+                guild.addRoleToMember(member, secondRole).queue();
+            } else {
+                guild.addRoleToMember(member, thirdRole).queue();
+            }
+
+            String nickName = member.getNickname();
+            if (nickName == null)
+                nickName = member.getEffectiveName();
+            boolean changed = false;
+            for (int i = 1; i < 4; i++) {
+                if (nickName.contains(positionEmoji(i))) {
+                    nickName = nickName.replace(positionEmoji(i), positionEmoji(pos));
+                    changed = true;
+                }
+            }
+            if (!changed) nickName += positionEmoji(pos);
+            guild.modifyNickname(member, nickName).queue();
+            String statName = stat == null ? "null" : stat.niceName();
+            System.out.println("Modified user " + member.getEffectiveName() + " #" + pos + " in " + statName);
+        });
+    }
+
     public void save(Stat stat, Leaderboard leaderboard) {
         save(stat, leaderboard, System.currentTimeMillis());
     }
@@ -138,6 +211,20 @@ public class LeaderboardManager extends DataManager {
             statNode = JsonNodeFactory.instance.objectNode();
         } else {
             statNode = (ObjectNode) node.get(stat.name());
+        }
+        if (Iterators.size(statNode.fieldNames()) > 2) {
+            long earliest = -1;
+            for (Iterator<String> it = statNode.fieldNames(); it.hasNext(); ) {
+                String fieldName = it.next();
+                try {
+                    long tMillis = Long.parseLong(fieldName);
+                    if (earliest < 0 || tMillis < earliest) earliest = tMillis;
+                } catch (NumberFormatException e) {
+                    System.err.println("Could not parse long " + fieldName);
+                }
+            }
+            if (earliest > 0)
+                statNode.remove(String.valueOf(earliest));
         }
         node.set(stat.name(), statNode);
         ObjectNode userNode = JsonNodeFactory.instance.objectNode();

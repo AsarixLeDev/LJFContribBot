@@ -14,7 +14,7 @@ import java.util.*;
 public class UserManager {
 
     private static final Map<Long, User> userCache = new HashMap<>();
-    private static final Map<String, String> userMentionCache = new HashMap<>();
+    private static final Map<String, Long> userMentionCache = new HashMap<>();
 
     public static boolean hasAccess(User user) {
         userCache.put(user.getIdLong(), user);
@@ -194,10 +194,15 @@ public class UserManager {
         return getUser(idLong);
     }
 
-    public static String tryGetMention(String userName) {
+    public static User getUserByUuid(UUID uuid) {
+        return getUserByName(UUIDManager.get().getName(uuid));
+    }
+
+    public static User getUserByName(String userName) {
+        if (userName == null) return null;
         String lowerName = userName.toLowerCase();
         if (userMentionCache.containsKey(lowerName))
-            return userMentionCache.get(lowerName);
+            return getUser(userMentionCache.get(lowerName));
 
         Guild guild = Main.jda.getGuildById("604823789188022301");
         if (guild == null) {
@@ -206,13 +211,21 @@ public class UserManager {
         }
         for (Member member : guild.getMembers()) {
             String nickName = member.getNickname();
-            if (nickName == null) continue;
+            if (nickName == null) {
+                nickName = member.getEffectiveName();
+            }
             if (nickName.toLowerCase().contains(lowerName)) {
-                String mention = member.getAsMention();
-                userMentionCache.put(lowerName, mention);
-                return mention;
+                long id = member.getIdLong();
+                userMentionCache.put(lowerName, id);
+                return getUser(id);
             }
         }
-        return userName;
+        return null;
+    }
+
+    public static String tryGetMention(String userName) {
+        User user = getUserByName(userName);
+        if (user == null) return userName;
+        return "<@" + user.getId() + ">";
     }
 }

@@ -54,7 +54,7 @@ public class StatsManager {
         System.err.println("Looking for already existing stat...");
         for (Stats stats : statsList) {
             if (stats.getUuid() == uuid) {
-                int FIVE_MINUTES = 30_000;
+                int FIVE_MINUTES = 30_000_000;
                 if (System.currentTimeMillis() - stats.fetchedAtMillis < FIVE_MINUTES) {
                     return stats;
                 } else {

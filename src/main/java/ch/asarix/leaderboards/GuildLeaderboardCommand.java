@@ -26,20 +26,20 @@ public class GuildLeaderboardCommand extends Command {
     @Override
     public MessageContent run(@NotNull SlashCommandInteractionEvent event) throws Exception {
         String statName = getOption(event, "stat");
-        List<Stat> stats;
+        List<Stat> statsList;
         if (statName == null) {
-            stats = new ArrayList<>();
-            stats.add(DungeonType.CATACOMBS);
-//            stats.addAll(Arrays.stream(DungeonType.values()).toList());
-            stats.addAll(Arrays.stream(Misc.values()).toList());
-            stats.addAll(Arrays.stream(Skill.values()).toList());
-            stats.addAll(Arrays.stream(Slayer.values()).toList());
+            statsList = new ArrayList<>();
+            statsList.add(DungeonType.CATACOMBS);
+//            statsList.addAll(Arrays.stream(DungeonType.values()).toList());
+            statsList.addAll(Arrays.stream(Misc.values()).toList());
+            statsList.addAll(Arrays.stream(Skill.values()).toList());
+            statsList.addAll(Arrays.stream(Slayer.values()).toList());
         } else {
             Stat stat = StatsManager.get().fromName(statName);
             if (stat == null) {
                 return new MessageContent("Stat inconnu : " + statName);
             }
-            stats = List.of(stat);
+            statsList = List.of(stat);
         }
         List<Stats> guildStats = new LinkedList<>();
         GuildReply.Guild guild = APIManager.get().getGuildByPlayer(UUID.fromString("8177cfe8-3a1f-4ac8-86b2-8e19dff1c156")).getGuild();
@@ -50,19 +50,24 @@ public class GuildLeaderboardCommand extends Command {
                 member -> {
                     UUID uuid = member.getUuid();
                     System.out.println("Fetching " + UUIDManager.get().getName(uuid) + "'s profile...");
+                    Stats stats = statsManager.getStats(uuid);
                     try {
-                        guildStats.add(statsManager.getStats(uuid));
+                        guildStats.add(stats);
                     } catch (RuntimeException e) {
                         e.printStackTrace();
                     }
                     System.out.println("Done.");
                 }
         );
-        for (Stat stat : stats) {
+        for (Stat stat : statsList) {
             event.getChannel().sendMessage(LeaderboardManager.get().leaderboardMessage(stat, guildStats).build()).queue();
         }
+        for (Stats stats : guildStats) {
+            LeaderboardManager.get().displayRoles(stats, statsList);
+        }
         SimpleDateFormat formatter = new SimpleDateFormat("dd");
-        String msg = "Leaderboard de guild de " + Util.getMonth() + ", semaine du " + formatter.format(System.currentTimeMillis());
+        String msg = "```Leaderboard de guild de " + Util.getMonth() + ", semaine du " + formatter.format(System.currentTimeMillis());
+//        String msg = "```diff Leaderboard de la guilde du " + formatter.format(System.currentTimeMillis()) + " Skills```";
         return new MessageContent(new EmbedBuilder().setTitle(msg)).setAuthor(Main.asarix);
     }
 

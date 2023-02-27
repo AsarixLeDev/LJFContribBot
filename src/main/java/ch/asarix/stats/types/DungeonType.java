@@ -3,7 +3,11 @@ package ch.asarix.stats.types;
 import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
 import ch.asarix.stats.Stat;
+import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedDungeon;
+
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public enum DungeonType implements Stat {
     CATACOMBS(0.0002149604615),
@@ -26,5 +30,13 @@ public enum DungeonType implements Stat {
     @Override
     public String niceName() {
         return Util.firstCap(name());
+    }
+
+    @Override
+    public String formatLine(Stats stats) {
+        long xp = stats.getTotalXp(this);
+        double level = stats.getLevelWithProgress(this);
+        NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
+        return " [" + Util.round(level, 2) + "] **[" + nf.format(xp) + "]**";
     }
 }

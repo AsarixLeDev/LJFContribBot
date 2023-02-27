@@ -1,8 +1,6 @@
 package ch.asarix.leaderboards;
 
-import ch.asarix.APIManager;
-import ch.asarix.PermLevel;
-import ch.asarix.UUIDManager;
+import ch.asarix.*;
 import ch.asarix.commands.Command;
 import ch.asarix.commands.MessageContent;
 import ch.asarix.stats.Stat;
@@ -12,6 +10,7 @@ import ch.asarix.stats.types.DungeonType;
 import ch.asarix.stats.types.Misc;
 import ch.asarix.stats.types.Skill;
 import ch.asarix.stats.types.Slayer;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -20,6 +19,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.hypixel.api.reply.GuildReply;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class GuildLeaderboardCommand extends Command {
@@ -29,7 +29,8 @@ public class GuildLeaderboardCommand extends Command {
         List<Stat> stats;
         if (statName == null) {
             stats = new ArrayList<>();
-            stats.addAll(Arrays.stream(DungeonType.values()).toList());
+            stats.add(DungeonType.CATACOMBS);
+//            stats.addAll(Arrays.stream(DungeonType.values()).toList());
             stats.addAll(Arrays.stream(Misc.values()).toList());
             stats.addAll(Arrays.stream(Skill.values()).toList());
             stats.addAll(Arrays.stream(Slayer.values()).toList());
@@ -60,7 +61,9 @@ public class GuildLeaderboardCommand extends Command {
         for (Stat stat : stats) {
             event.getChannel().sendMessage(LeaderboardManager.get().leaderboardMessage(stat, guildStats).build()).queue();
         }
-        return new MessageContent("finito");
+        SimpleDateFormat formatter = new SimpleDateFormat("dd");
+        String msg = "Leaderboard de guild de " + Util.getMonth() + ", semaine du " + formatter.format(System.currentTimeMillis());
+        return new MessageContent(new EmbedBuilder().setTitle(msg)).setAuthor(Main.asarix);
     }
 
     @Override

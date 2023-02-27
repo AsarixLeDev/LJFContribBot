@@ -1,5 +1,6 @@
 package ch.asarix.stats;
 
+import ch.asarix.stats.types.DungeonType;
 import ch.asarix.stats.types.Misc;
 import ch.asarix.stats.types.Skill;
 
@@ -47,6 +48,9 @@ public class Stats {
 //            System.err.println("---------");
             return (int) (totalWeight * 100);
         }
+        if (stat == Misc.DJ_CLASS) {
+            return getTotalXp(getBestClass());
+        }
         if (!stats.containsKey(stat))
             return 0;
         return stats.get(stat).getTotalXp();
@@ -66,6 +70,9 @@ public class Stats {
         }
         if (stat == Misc.WEIGHT) {
             return (int) getWeight(Misc.WEIGHT).total();
+        }
+        if (stat == Misc.DJ_CLASS) {
+            return getLevel(getBestClass());
         }
         if (!stats.containsKey(stat))
             return 0;
@@ -87,6 +94,9 @@ public class Stats {
         if (stat == Misc.WEIGHT) {
             return getWeight(Misc.WEIGHT).total();
         }
+        if (stat == Misc.DJ_CLASS) {
+            return getLevelWithProgress(getBestClass());
+        }
         if (!stats.containsKey(stat))
             return 0;
         return stats.get(stat).getLevelWithProgress();
@@ -96,6 +106,9 @@ public class Stats {
         if (stat == Misc.WEIGHT) {
             return new Weight(weightWithoutOverflow, totalWeight - weightWithoutOverflow);
         }
+        if (stat == Misc.DJ_CLASS) {
+            return getWeight(getBestClass());
+        }
         if (!stats.containsKey(stat))
             return new Weight(0, 0);
         return stats.get(stat).getWeight();
@@ -103,5 +116,20 @@ public class Stats {
 
     public Map<Stat, CalculatedStat> getStats() {
         return stats;
+    }
+
+    public Stat getBestClass() {
+        Stat bestClass = null;
+        long bestXp = 0;
+        for (Stat stat : stats.keySet()) {
+            if (!(stat instanceof DungeonType)) continue;
+            if (stat == DungeonType.CATACOMBS) continue;
+            long classXp = getTotalXp(stat);
+            if (classXp > bestXp) {
+                bestClass = stat;
+                bestXp = classXp;
+            }
+        }
+        return bestClass;
     }
 }

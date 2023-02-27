@@ -3,7 +3,11 @@ package ch.asarix.stats.types;
 import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
 import ch.asarix.stats.Stat;
+import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedSkill;
+
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public enum Skill implements Stat {
     MINING(1.18207448, 259634, 60, false),
@@ -43,5 +47,13 @@ public enum Skill implements Stat {
         if (this == SOCIAL2)
             return "Social";
         return Util.firstCap(name());
+    }
+
+    @Override
+    public String formatLine(Stats stats) {
+        long xp = stats.getTotalXp(this);
+        double level = stats.getLevelWithProgress(this);
+        NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
+        return " [" + Util.round(level, 2) + "] **[" + nf.format(xp) + "]**";
     }
 }

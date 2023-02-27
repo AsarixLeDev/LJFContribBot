@@ -6,4 +6,6 @@ public interface Stat {
     String niceName();
 
     CalculatedStat calculate(long xp);
+
+    String formatLine(Stats stats);
 }

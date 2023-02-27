@@ -4,10 +4,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 
 import java.text.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class Util {
     public static EmbedBuilder authorEmbed(User user) {
@@ -87,5 +84,12 @@ public class Util {
     public static String firstCap(String word) {
         String fLetter = word.substring(0, 1).toUpperCase();
         return fLetter + word.substring(1).toLowerCase();
+    }
+
+    public static String getMonth() {
+        int monthNumber = Calendar.getInstance().get(Calendar.MONTH);
+        DateFormatSymbols dfs = new DateFormatSymbols();
+        String[] months = dfs.getMonths();
+        return firstCap(months[monthNumber]);
     }
 }

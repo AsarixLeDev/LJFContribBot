@@ -3,19 +3,17 @@ package ch.asarix.leaderboards;
 import ch.asarix.DataManager;
 import ch.asarix.JsonUtil;
 import ch.asarix.UUIDManager;
-import ch.asarix.Util;
+import ch.asarix.UserManager;
 import ch.asarix.commands.MessageContent;
 import ch.asarix.stats.Stat;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.StatsManager;
-import ch.asarix.stats.types.Misc;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.dv8tion.jda.api.EmbedBuilder;
 
-import java.text.NumberFormat;
 import java.util.*;
 
 public class LeaderboardManager extends DataManager {
@@ -102,7 +100,6 @@ public class LeaderboardManager extends DataManager {
         long prevXp = 0;
         int prevIndex = i;
         for (Stats stats1 : top.subList(0, Math.min(5, top.size()))) {
-            double level = stats1.getLevelWithProgress(stat);
             long xp = stats1.getTotalXp(stat);
             int index = i++;
             if (prevXp == xp) index = prevIndex;
@@ -110,15 +107,9 @@ public class LeaderboardManager extends DataManager {
             leaderboard.addUser(uuid, index);
             String userName = UUIDManager.get().getName(uuid);
             String relEmoji = LeaderboardManager.get().getRelEmoji(uuid, stat, index);
-            String line = "`" + relEmoji + positionEmoji(index) + "` #" + index;
-            if (stat instanceof Misc) {
-                line += " **[" + Util.round(level, 2) + "]**";
-            } else {
-                NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
-                line += " [" + Util.round(level, 2) + "] **[" + nf.format(xp) + "]**";
-
-            }
-            line += " " + userName;
+            String line = "`" + relEmoji + positionEmoji(index) + "` #" + index + " ";
+            line += stat.formatLine(stats1);
+            line += " " + UserManager.tryGetMention(userName);
             builder1.append(line).append("\n");
             prevXp = xp;
             prevIndex = index;

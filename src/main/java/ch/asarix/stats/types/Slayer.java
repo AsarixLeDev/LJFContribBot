@@ -1,8 +1,13 @@
 package ch.asarix.stats.types;
 
+import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
 import ch.asarix.stats.Stat;
+import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedSlayer;
+
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public enum Slayer implements Stat {
     WOLF(1962, 0.015),
@@ -32,5 +37,13 @@ public enum Slayer implements Stat {
             case ENDERMAN -> "Enderman slayer";
             case BLAZE -> "Blaze slayer";
         };
+    }
+
+    @Override
+    public String formatLine(Stats stats) {
+        long xp = stats.getTotalXp(this);
+        double level = stats.getLevelWithProgress(this);
+        NumberFormat nf = NumberFormat.getInstance(new Locale("en", "US"));
+        return " [" + Util.round(level, 2) + "] **[" + nf.format(xp) + "]**";
     }
 }

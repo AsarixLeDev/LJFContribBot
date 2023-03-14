@@ -44,24 +44,27 @@ public class StatsManager {
     }
 
     public void addStats(Stats stats) {
-        Stats stats1 = getStats(stats.getUuid());
-        if (stats1 != null)
-            statsList.remove(stats1);
+        Stats cachedStat = getCachedStats(stats.getUuid());
+        if (cachedStat != null) statsList.remove(cachedStat);
         statsList.add(stats);
     }
 
-    public Stats getStats(UUID uuid) {
-        System.err.println("Looking for already existing stat...");
+    public Stats getCachedStats(UUID uuid) {
         for (Stats stats : statsList) {
             if (stats.getUuid() == uuid) {
                 int FIVE_MINUTES = 30_000_000;
                 if (System.currentTimeMillis() - stats.fetchedAtMillis < FIVE_MINUTES) {
                     return stats;
-                } else {
-                    return getStats(uuid, getLatestProfile(uuid));
                 }
             }
         }
+        return null;
+    }
+
+    public Stats getStats(UUID uuid) {
+        System.err.println("Looking for already existing stat...");
+        Stats stats = getCachedStats(uuid);
+        if (stats != null) return stats;
         System.err.println("Not found");
         System.err.println("Getting latest profile...");
         JsonObject profile = getLatestProfile(uuid);
@@ -140,6 +143,7 @@ public class StatsManager {
                 }
             }
         }
+        addStats(stats);
         return stats;
     }
 }

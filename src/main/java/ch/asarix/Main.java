@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -26,6 +27,7 @@ public class Main extends ListenerAdapter {
 
     public static JDA jda;
     public static User asarix;
+    public static Guild ljf;
     public static List<DataManager> dataManagers;
 
     public static void main(String[] args) {
@@ -70,7 +72,17 @@ public class Main extends ListenerAdapter {
                 .enableIntents(GatewayIntent.GUILD_MEMBERS)
                 .setEnableShutdownHook(true)
                 .build();
+        try {
+            jda.awaitReady();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         asarix = jda.retrieveUserById("441284809856122891").complete();
+        ljf = jda.getGuildById("604823789188022301");
+        if (ljf == null) {
+            System.err.println("Failed to load ljf");
+            shutDown();
+        }
         UserManager.addAdmin(asarix);
         dataManagers = List.of(SeasonManager.get(), ContribManager.get(), UUIDManager.get(), LeaderboardManager.get(), APIManager.get());
         dataManagers.forEach(DataManager::init);

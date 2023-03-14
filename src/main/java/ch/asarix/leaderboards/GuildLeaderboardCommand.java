@@ -11,6 +11,8 @@ import ch.asarix.stats.types.Misc;
 import ch.asarix.stats.types.Skill;
 import ch.asarix.stats.types.Slayer;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -21,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GuildLeaderboardCommand extends Command {
     @Override
@@ -32,7 +35,11 @@ public class GuildLeaderboardCommand extends Command {
             statsList.add(DungeonType.CATACOMBS);
 //            statsList.addAll(Arrays.stream(DungeonType.values()).toList());
             statsList.addAll(Arrays.stream(Misc.values()).toList());
-            statsList.addAll(Arrays.stream(Skill.values()).toList());
+            List<Stat> skills = Arrays.stream(Skill.values()).collect(Collectors.toList());
+            skills.remove(Skill.SOCIAL2);
+            skills.remove(Skill.RUNECRAFTING);
+            skills.remove(Skill.CARPENTRY);
+            statsList.addAll(skills);
             statsList.addAll(Arrays.stream(Slayer.values()).toList());
         } else {
             Stat stat = StatsManager.get().fromName(statName);
@@ -59,14 +66,46 @@ public class GuildLeaderboardCommand extends Command {
                     System.out.println("Done.");
                 }
         );
+        List<Member> previousPlayers = new ArrayList<>();
         for (Stat stat : statsList) {
-            event.getChannel().sendMessage(LeaderboardManager.get().leaderboardMessage(stat, guildStats).build()).queue();
+            Leaderboard leaderboard = LeaderboardManager.get().getLatestLeaderboard(stat);
+            if (leaderboard == null) continue;
+            for (UUID uuid : leaderboard.getUsers().keySet()) {
+                if (leaderboard.getPlace(uuid) > 3) continue;
+                User user = UserManager.getUserByUuid(uuid);
+                if (user == null) {
+                    System.err.println("Could not find user with uuid : " + uuid);
+                    continue;
+                }
+                Member member = Main.ljf.getMember(user);
+                if (member == null) {
+                    System.err.println("User " + user.getAsTag() + " is not in guild " + Main.ljf.getName());
+                    continue;
+                }
+                if (!previousPlayers.contains(member))
+                    previousPlayers.add(member);
+            }
         }
-        for (Stats stats : guildStats) {
-            LeaderboardManager.get().displayRoles(stats, statsList);
+        for (Member member : previousPlayers) {
+            LeaderboardManager.get().removeRoles(member);
+        }
+        StringBuilder message = new StringBuilder();
+        for (Stat stat : statsList) {
+            String leaderboardMessage = LeaderboardManager.get().leaderboardMessage(stat, guildStats);
+            if ((message + leaderboardMessage).length() > 1000) {
+                System.out.println("Sending...");
+                event.getChannel().sendMessage(message).queue();
+                message = new StringBuilder(leaderboardMessage);
+            } else {
+                message.append(leaderboardMessage);
+            }
+        }
+        event.getChannel().sendMessage(message).queue();
+        for (Stat stat : statsList) {
+            LeaderboardManager.get().displayRoles(stat, statsList);
         }
         SimpleDateFormat formatter = new SimpleDateFormat("dd");
-        String msg = "```Leaderboard de guild de " + Util.getMonth() + ", semaine du " + formatter.format(System.currentTimeMillis());
+        String msg = "Leaderboard de guild de " + Util.getMonth() + ", semaine du " + formatter.format(System.currentTimeMillis());
 //        String msg = "```diff Leaderboard de la guilde du " + formatter.format(System.currentTimeMillis()) + " Skills```";
         return new MessageContent(new EmbedBuilder().setTitle(msg)).setAuthor(Main.asarix);
     }

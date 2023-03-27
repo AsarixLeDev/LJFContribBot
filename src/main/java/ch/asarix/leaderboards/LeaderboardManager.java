@@ -74,8 +74,8 @@ public class LeaderboardManager extends DataManager {
         if (latest == null) return "\uD83D\uDD36";
         int lastPlace = latest.getPlace(uuid);
         if (lastPlace == i) return "\uD83D\uDD36";
-        if (lastPlace < i) return "\uD83D\uDD3A";
-        return "\uD83D\uDD3B";
+        if (lastPlace < i) return "\uD83D\uDD3B";
+        return "\uD83D\uDD3A";
     }
 
     private String positionEmoji(int i) {

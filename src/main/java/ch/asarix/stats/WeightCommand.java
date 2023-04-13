@@ -75,6 +75,7 @@ public class WeightCommand extends Command {
         Stats stats = StatsManager.get().getStats(player.getUuid());
         for (Stat stat : stats.getStats().keySet()) {
             if (stat instanceof Skill) {
+                if (((Skill)stat).isCosmetic()) continue;
                 skillWeights.put(stat.niceName(), stats.getWeight(stat));
             } else if (stat instanceof Slayer) {
                 slayerWeights.put(stat.niceName(), stats.getWeight(stat));

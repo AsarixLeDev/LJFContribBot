@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class WeightCommand extends Command {
 
@@ -65,14 +66,10 @@ public class WeightCommand extends Command {
     }
 
     private MessageContent analyseWeight(PlayerReply.Player player, JsonObject profile) {
-        JsonObject members = profile.get("members").getAsJsonObject();
-        String fUuid = player.getUuid().toString().replace("-", "");
-        JsonObject pProfile = members.get(fUuid).getAsJsonObject();
-//        System.out.println(pProfile.toString());
         Map<String, Weight> skillWeights = new HashMap<>();
         Map<String, Weight> slayerWeights = new HashMap<>();
         Map<String, Weight> dungeonWeights = new HashMap<>();
-        Stats stats = StatsManager.get().getStats(player.getUuid());
+        Stats stats = StatsManager.get().getStats(player.getUuid(), profile);
         for (Stat stat : stats.getStats().keySet()) {
             if (stat instanceof Skill) {
                 if (((Skill)stat).isCosmetic()) continue;
@@ -83,44 +80,31 @@ public class WeightCommand extends Command {
                 dungeonWeights.put(stat.niceName(), stats.getWeight(stat));
             }
         }
-        List<String> sortedSkill = new LinkedList<>();
-        List<String> sortedSlayer = new LinkedList<>();
-        List<String> sortedDungeon = new LinkedList<>();
-        double total = 0;
-        double totalBase = 0;
-        for (String key : skillWeights.keySet()) {
-            Weight weight = skillWeights.get(key);
-            double aDouble = weight.total();
-            if (aDouble == 0) continue;
-            sortedSkill.add(key);
-            total += aDouble;
-            totalBase += weight.base();
-        }
-        for (String key : slayerWeights.keySet()) {
-            Weight weight = slayerWeights.get(key);
-            double aDouble = weight.total();
-            if (aDouble == 0) continue;
-            sortedSlayer.add(key);
-            total += aDouble;
-            totalBase += weight.base();
-        }
-        for (String key : dungeonWeights.keySet()) {
-            Weight weight = dungeonWeights.get(key);
-            double aDouble = weight.total();
-            if (aDouble == 0) continue;
-            sortedDungeon.add(key);
-            total += aDouble;
-            totalBase += weight.base();
-        }
 
+        List<String> sortedSkill = skillWeights.keySet().stream()
+                .filter(key -> skillWeights.get(key).total() != 0)
+                .sorted(Comparator.comparingDouble(key -> skillWeights.get(key).total()).reversed())
+                .collect(Collectors.toList());
+        List<String> sortedSlayer = slayerWeights.keySet().stream()
+                .filter(key -> slayerWeights.get(key).total() != 0)
+                .sorted(Comparator.comparingDouble(key -> slayerWeights.get(key).total()).reversed())
+                .collect(Collectors.toList());
+        List<String> sortedDungeon = dungeonWeights.keySet().stream()
+                .filter(key -> dungeonWeights.get(key).total() != 0)
+                .sorted(Comparator.comparingDouble(key -> dungeonWeights.get(key).total()).reversed())
+                .collect(Collectors.toList());
 
-        sortedSkill = sortedSkill.stream().sorted(Comparator.comparingDouble(
-                key -> skillWeights.get(key).total()).reversed()).toList();
-        sortedSlayer = sortedSlayer.stream().sorted(Comparator.comparingDouble(
-                key -> slayerWeights.get(key).total()).reversed()).toList();
-        sortedDungeon = sortedDungeon.stream().sorted(Comparator.comparingDouble(
-                key -> dungeonWeights.get(key).total()).reversed()).toList();
+        double skillTotal = skillWeights.values().stream().map(Weight::total).reduce(0d, Double::sum);
+        double skillBase = skillWeights.values().stream().map(Weight::base).reduce(0d, Double::sum);
 
+        double slayerTotal = slayerWeights.values().stream().map(Weight::total).reduce(0d, Double::sum);
+        double slayerBase = slayerWeights.values().stream().map(Weight::base).reduce(0d, Double::sum);
+
+        double dungeonTotal = dungeonWeights.values().stream().map(Weight::total).reduce(0d, Double::sum);
+        double dungeonBase = dungeonWeights.values().stream().map(Weight::base).reduce(0d, Double::sum);
+
+        double total = skillTotal + slayerTotal + dungeonTotal;
+        double totalBase = skillBase + slayerBase + dungeonBase;
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setThumbnail("https://crafatar.com/avatars/" + player.getUuid().toString());
@@ -128,64 +112,34 @@ public class WeightCommand extends Command {
         builder.addField("Weight totale", String.valueOf(Util.round(total, 2)), true);
         builder.addField("Weight sans excédent", String.valueOf(Util.round(totalBase, 2)), true);
 
-        StringBuilder skillsValue = new StringBuilder();
-        double skillTotal = 0;
-        double skillBase = 0;
-        for (String key : sortedSkill) {
-            Weight val = skillWeights.get(key);
-            skillTotal += val.total();
-            skillBase += val.base();
-            skillsValue.append(Util.firstCap(key))
-                    .append(" : **")
-                    .append(Util.round(val.total(), 2))
-                    .append("**")
-                    .append(" (")
-                    .append(Util.round(val.base(), 2))
-                    .append(")").append("\n");
-        }
-        String title = "Skills : " + Util.round(skillTotal, 2);
-        title += " (" + Util.round(skillBase, 2) + ")";
-        builder.addField(title, skillsValue.append("\n").toString(), false);
+        String title = "Skills : " + Util.round(skillTotal, 2)
+                + " (" + Util.round(skillBase, 2) + ")";
+        builder.addField(title, getField(sortedSkill, skillWeights), false);
 
-        StringBuilder slayerValue = new StringBuilder();
-        double slayerTotal = 0;
-        double slayerBase = 0;
-        for (String key : sortedSlayer) {
-            Weight val = slayerWeights.get(key);
-            slayerTotal += val.total();
-            slayerBase += val.base();
-            slayerValue.append(Util.firstCap(key))
-                    .append(" : **")
-                    .append(Util.round(val.total(), 2))
-                    .append("**")
-                    .append(" (")
-                    .append(Util.round(val.base(), 2))
-                    .append(")").append("\n");
-        }
-        title = "Slayers : " + Util.round(slayerTotal, 2);
-        title += " (" + Util.round(slayerBase, 2) + ")";
-        builder.addField(title, slayerValue.append("\n").toString(), false);
+        title = "Slayers : " + Util.round(slayerTotal, 2)
+                + " (" + Util.round(slayerBase, 2) + ")";
+        builder.addField(title, getField(sortedSlayer, slayerWeights), false);
 
-        StringBuilder dungeonValue = new StringBuilder();
-        double dungeonTotal = 0;
-        double dungeonBase = 0;
-        for (String key : sortedDungeon) {
-            Weight val = dungeonWeights.get(key);
-            dungeonTotal += val.total();
-            dungeonBase += val.base();
-            dungeonValue.append(Util.firstCap(key))
-                    .append(" : **")
-                    .append(Util.round(val.total(), 2))
-                    .append("**")
-                    .append(" (")
-                    .append(Util.round(val.base(), 2))
-                    .append(")").append("\n");
-        }
-        title = "Donjons : " + Util.round(dungeonTotal, 2);
-        title += " (" + Util.round(dungeonBase, 2) + ")";
-        builder.addField(title, dungeonValue.append("\n").toString(), false);
+        title = "Donjons : " + Util.round(dungeonTotal, 2)
+                + " (" + Util.round(dungeonBase, 2) + ")";
+        builder.addField(title, getField(sortedDungeon, dungeonWeights), false);
 
         return new MessageContent(builder).setAuthor(Main.asarix);
+    }
+
+    private String getField(List<String> sortedKeys, Map<String, Weight> map) {
+        StringBuilder builder = new StringBuilder();
+        for (String key : sortedKeys) {
+            Weight val = map.get(key);
+            builder.append(Util.firstCap(key))
+                    .append(" : **")
+                    .append(Util.round(val.total(), 2))
+                    .append("**")
+                    .append(" (")
+                    .append(Util.round(val.base(), 2))
+                    .append(")").append("\n");
+        }
+        return builder.append("\n").toString();
     }
 
     @Override

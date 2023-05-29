@@ -2,14 +2,14 @@ package ch.asarix.stats.types;
 
 import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedSkill;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public enum Skill implements Stat {
+public enum Skill implements StatType {
     MINING(1.18207448, 259634, 60, false),
     FORAGING(1.232826, 259634, 50, false),
     ENCHANTING(0.96976583, 882758, 60, false),

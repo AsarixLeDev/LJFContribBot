@@ -1,6 +1,6 @@
 package ch.asarix.leaderboards;
 
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,10 +9,10 @@ import java.util.UUID;
 public class Leaderboard {
     private final Map<UUID, Integer> users = new HashMap<>();
     private final Map<UUID, Boolean> roleGiven = new HashMap<>();
-    private final Stat stat;
+    private final StatType statType;
 
-    public Leaderboard(Stat stat) {
-        this.stat = stat;
+    public Leaderboard(StatType statType) {
+        this.statType = statType;
     }
 
     public void addUser(UUID uuid, int place) {
@@ -37,8 +37,8 @@ public class Leaderboard {
         return null;
     }
 
-    public Stat getStat() {
-        return stat;
+    public StatType getStat() {
+        return statType;
     }
 
     public boolean roleGiven(UUID uuid) {

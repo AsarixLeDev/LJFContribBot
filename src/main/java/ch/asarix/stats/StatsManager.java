@@ -23,7 +23,7 @@ public class StatsManager {
         return instance;
     }
 
-    public Stat fromName(String name) {
+    public StatType fromName(String name) {
         try {
             return DungeonType.valueOf(name.toUpperCase());
         } catch (Exception ignored) {
@@ -62,19 +62,17 @@ public class StatsManager {
     }
 
     public Stats getStats(UUID uuid) {
-        System.err.println("Looking for already existing stat...");
         Stats stats = getCachedStats(uuid);
         if (stats != null) return stats;
-        System.err.println("Not found");
-        System.err.println("Getting latest profile...");
         JsonObject profile = getLatestProfile(uuid);
-        System.err.println("Done.");
+        if (profile == null) return null;
         return getStats(uuid, profile);
     }
 
     public JsonObject getLatestProfile(UUID uuid) {
         SkyBlockProfilesReply reply = APIManager.get().getSkyBlockProfiles(uuid);
         JsonArray array = reply.getProfiles();
+        if (array == null) return null;
         JsonObject latestProfile = null;
         long latest_save = 0;
         for (int i = 0; i < array.size(); i++) {
@@ -90,7 +88,7 @@ public class StatsManager {
     }
 
     public Stats getStats(UUID uuid, JsonObject profile) {
-        System.err.println("Fetching from hypixel API...");
+        if (profile == null) return null;
         Stats stats = new Stats(uuid);
         JsonObject members = profile.get("members").getAsJsonObject();
         String fUuid = uuid.toString().replace("-", "");

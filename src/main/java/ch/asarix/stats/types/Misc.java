@@ -2,12 +2,12 @@ package ch.asarix.stats.types;
 
 import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedSbLevel;
 import ch.asarix.stats.calculated.CalculatedVoid;
 
-public enum Misc implements Stat {
+public enum Misc implements StatType {
     SB_LEVEL,
     AVERAGE,
     WEIGHT,

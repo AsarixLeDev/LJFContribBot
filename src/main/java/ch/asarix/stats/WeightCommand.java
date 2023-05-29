@@ -70,14 +70,14 @@ public class WeightCommand extends Command {
         Map<String, Weight> slayerWeights = new HashMap<>();
         Map<String, Weight> dungeonWeights = new HashMap<>();
         Stats stats = StatsManager.get().getStats(player.getUuid(), profile);
-        for (Stat stat : stats.getStats().keySet()) {
-            if (stat instanceof Skill) {
-                if (((Skill)stat).isCosmetic()) continue;
-                skillWeights.put(stat.niceName(), stats.getWeight(stat));
-            } else if (stat instanceof Slayer) {
-                slayerWeights.put(stat.niceName(), stats.getWeight(stat));
-            } else if (stat instanceof DungeonType) {
-                dungeonWeights.put(stat.niceName(), stats.getWeight(stat));
+        for (StatType statType : stats.getStats().keySet()) {
+            if (statType instanceof Skill) {
+                if (((Skill) statType).isCosmetic()) continue;
+                skillWeights.put(statType.niceName(), stats.getWeight(statType));
+            } else if (statType instanceof Slayer) {
+                slayerWeights.put(statType.niceName(), stats.getWeight(statType));
+            } else if (statType instanceof DungeonType) {
+                dungeonWeights.put(statType.niceName(), stats.getWeight(statType));
             }
         }
 

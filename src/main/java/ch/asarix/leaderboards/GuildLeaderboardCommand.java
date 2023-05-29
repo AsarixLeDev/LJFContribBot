@@ -3,7 +3,7 @@ package ch.asarix.leaderboards;
 import ch.asarix.*;
 import ch.asarix.commands.Command;
 import ch.asarix.commands.MessageContent;
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.StatsManager;
 import ch.asarix.stats.types.DungeonType;
@@ -29,24 +29,24 @@ public class GuildLeaderboardCommand extends Command {
     @Override
     public MessageContent run(@NotNull SlashCommandInteractionEvent event) throws Exception {
         String statName = getOption(event, "stat");
-        List<Stat> statsList;
+        List<StatType> statsList;
         if (statName == null) {
             statsList = new ArrayList<>();
             statsList.add(DungeonType.CATACOMBS);
 //            statsList.addAll(Arrays.stream(DungeonType.values()).toList());
             statsList.addAll(Arrays.stream(Misc.values()).toList());
-            List<Stat> skills = Arrays.stream(Skill.values()).collect(Collectors.toList());
+            List<StatType> skills = Arrays.stream(Skill.values()).collect(Collectors.toList());
             skills.remove(Skill.SOCIAL2);
             skills.remove(Skill.RUNECRAFTING);
             skills.remove(Skill.CARPENTRY);
             statsList.addAll(skills);
             statsList.addAll(Arrays.stream(Slayer.values()).toList());
         } else {
-            Stat stat = StatsManager.get().fromName(statName);
-            if (stat == null) {
+            StatType statType = StatsManager.get().fromName(statName);
+            if (statType == null) {
                 return new MessageContent("Stat inconnu : " + statName);
             }
-            statsList = List.of(stat);
+            statsList = List.of(statType);
         }
         List<Stats> guildStats = new LinkedList<>();
         GuildReply.Guild guild = APIManager.get().getGuildByPlayer(UUID.fromString("8177cfe8-3a1f-4ac8-86b2-8e19dff1c156")).getGuild();
@@ -58,6 +58,10 @@ public class GuildLeaderboardCommand extends Command {
                     UUID uuid = member.getUuid();
                     System.out.println("Fetching " + UUIDManager.get().getName(uuid) + "'s profile...");
                     Stats stats = statsManager.getStats(uuid);
+                    if (stats == null) {
+                        System.err.println("No stats (likely due to no profile)");
+                        return;
+                    }
                     try {
                         guildStats.add(stats);
                     } catch (RuntimeException e) {
@@ -67,8 +71,8 @@ public class GuildLeaderboardCommand extends Command {
                 }
         );
         List<Member> previousPlayers = new ArrayList<>();
-        for (Stat stat : statsList) {
-            Leaderboard leaderboard = LeaderboardManager.get().getLatestLeaderboard(stat);
+        for (StatType statType : statsList) {
+            Leaderboard leaderboard = LeaderboardManager.get().getLatestLeaderboard(statType);
             if (leaderboard == null) continue;
             for (UUID uuid : leaderboard.getUsers().keySet()) {
                 if (leaderboard.getPlace(uuid) > 3) continue;
@@ -90,8 +94,8 @@ public class GuildLeaderboardCommand extends Command {
             LeaderboardManager.get().removeRoles(member);
         }
         StringBuilder message = new StringBuilder();
-        for (Stat stat : statsList) {
-            String leaderboardMessage = LeaderboardManager.get().leaderboardMessage(stat, guildStats);
+        for (StatType statType : statsList) {
+            String leaderboardMessage = LeaderboardManager.get().leaderboardMessage(statType, guildStats);
             if ((message + leaderboardMessage).length() > 1000) {
                 System.out.println("Sending...");
                 event.getChannel().sendMessage(message).queue();
@@ -101,8 +105,8 @@ public class GuildLeaderboardCommand extends Command {
             }
         }
         event.getChannel().sendMessage(message).queue();
-        for (Stat stat : statsList) {
-            LeaderboardManager.get().displayRoles(stat, statsList);
+        for (StatType statType : statsList) {
+            LeaderboardManager.get().displayRoles(statType, statsList);
         }
         SimpleDateFormat formatter = new SimpleDateFormat("dd");
         String msg = "Leaderboard de guild de " + Util.getMonth() + ", semaine du " + formatter.format(System.currentTimeMillis());

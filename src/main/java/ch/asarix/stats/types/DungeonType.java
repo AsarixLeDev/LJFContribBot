@@ -2,14 +2,14 @@ package ch.asarix.stats.types;
 
 import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedDungeon;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public enum DungeonType implements Stat {
+public enum DungeonType implements StatType {
     CATACOMBS(0.0002149604615),
     HEALER(0.0000045254834),
     MAGE(0.0000045254834),

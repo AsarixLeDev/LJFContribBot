@@ -1,7 +1,7 @@
 package ch.asarix.leaderboards;
 
 import ch.asarix.*;
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.StatsManager;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,7 +19,7 @@ import java.util.*;
 public class LeaderboardManager extends DataManager {
 
     private static final LeaderboardManager instance = new LeaderboardManager();
-    public Map<Stat, Map<Long, Leaderboard>> map = new HashMap<>();
+    public Map<StatType, Map<Long, Leaderboard>> map = new HashMap<>();
     private Role firstRole;
     private Role secondRole;
     private Role thirdRole;
@@ -43,8 +43,8 @@ public class LeaderboardManager extends DataManager {
 
     @Override
     public void store(String key, JsonNode node) {
-        Stat stat = StatsManager.get().fromName(key);
-        if (stat == null) {
+        StatType statType = StatsManager.get().fromName(key);
+        if (statType == null) {
             System.err.println("Could not get stat from name " + key);
             return;
         }
@@ -52,7 +52,7 @@ public class LeaderboardManager extends DataManager {
         while (it.hasNext()) {
             Map.Entry<String, JsonNode> entry = it.next();
             long timeMillis = Long.parseLong(entry.getKey());
-            Leaderboard leaderboard = new Leaderboard(stat);
+            Leaderboard leaderboard = new Leaderboard(statType);
             Iterator<Map.Entry<String, JsonNode>> userIt = entry.getValue().fields();
             while (userIt.hasNext()) {
                 Map.Entry<String, JsonNode> userEntry = userIt.next();
@@ -60,7 +60,7 @@ public class LeaderboardManager extends DataManager {
                 int place = userEntry.getValue().asInt();
                 leaderboard.addUser(uuid, place);
             }
-            save(stat, leaderboard, timeMillis);
+            save(statType, leaderboard, timeMillis);
         }
     }
 
@@ -69,8 +69,8 @@ public class LeaderboardManager extends DataManager {
         map.clear();
     }
 
-    public String getRelEmoji(UUID uuid, Stat stat, int i) {
-        Leaderboard latest = getLatestLeaderboard(stat);
+    public String getRelEmoji(UUID uuid, StatType statType, int i) {
+        Leaderboard latest = getLatestLeaderboard(statType);
         if (latest == null) return "\uD83D\uDD36";
         int lastPlace = latest.getPlace(uuid);
         if (lastPlace == i) return "\uD83D\uDD36";
@@ -96,10 +96,10 @@ public class LeaderboardManager extends DataManager {
         return null;
     }
 
-    public Leaderboard getLatestLeaderboard(Stat stat) {
+    public Leaderboard getLatestLeaderboard(StatType statType) {
         long latestTimeMillis = 0;
         Leaderboard latestLeaderboard = null;
-        Map<Long, Leaderboard> leaderboards = map.get(stat);
+        Map<Long, Leaderboard> leaderboards = map.get(statType);
         if (leaderboards == null) return null;
         for (Long time : leaderboards.keySet()) {
             if (time <= latestTimeMillis) continue;
@@ -109,32 +109,32 @@ public class LeaderboardManager extends DataManager {
         return latestLeaderboard;
     }
 
-    public String leaderboardMessage(Stat stat, List<Stats> stats) {
-        StringBuilder builder = new StringBuilder("[**" + stat.niceName() + "**]\n");
+    public String leaderboardMessage(StatType statType, List<Stats> stats) {
+        StringBuilder builder = new StringBuilder("[**" + statType.niceName() + "**]\n");
         List<Stats> top = stats.stream()
-                .sorted(Comparator.comparingLong(s -> ((Stats) s).getTotalXp(stat)).reversed())
+                .sorted(Comparator.comparingLong(s -> ((Stats) s).getTotalXp(statType)).reversed())
                 .toList();
 
-        Leaderboard leaderboard = new Leaderboard(stat);
+        Leaderboard leaderboard = new Leaderboard(statType);
         int i = 1;
         long prevXp = 0;
         int prevIndex = i;
         for (Stats stats1 : top.subList(0, Math.min(5, top.size()))) {
-            long xp = stats1.getTotalXp(stat);
+            long xp = stats1.getTotalXp(statType);
             int index = i++;
             if (prevXp == xp) index = prevIndex;
             UUID uuid = stats1.getUuid();
             leaderboard.addUser(uuid, index);
             String userName = UUIDManager.get().getName(uuid);
-            String relEmoji = LeaderboardManager.get().getRelEmoji(uuid, stat, index);
+            String relEmoji = LeaderboardManager.get().getRelEmoji(uuid, statType, index);
             String line = "`" + relEmoji + positionEmoji(index) + "` #" + index + " ";
-            line += stat.formatLine(stats1);
+            line += statType.formatLine(stats1);
             line += " " + UserManager.tryGetMention(userName);
             builder.append(line).append("\n");
             prevXp = xp;
             prevIndex = index;
         }
-        save(stat, leaderboard);
+        save(statType, leaderboard);
         return builder.toString();
     }
 
@@ -154,14 +154,14 @@ public class LeaderboardManager extends DataManager {
         System.out.println("Removed roles from member " + member.getAsMention());
     }
 
-    public Map.Entry<Integer, Leaderboard> getLatestBestPlace(Stats stats, List<Stat> included) {
+    public Map.Entry<Integer, Leaderboard> getLatestBestPlace(Stats stats, List<StatType> included) {
         int bestPlace = 7;
         Leaderboard bestLb = null;
-        for (Stat stat : stats.getStats().keySet()) {
-            if (!included.contains(stat)) continue;
-            Leaderboard leaderboard = getLatestLeaderboard(stat);
+        for (StatType statType : stats.getStats().keySet()) {
+            if (!included.contains(statType)) continue;
+            Leaderboard leaderboard = getLatestLeaderboard(statType);
             if (leaderboard == null) {
-                System.err.println("Could not find latest leaderboard of stat " + stat.niceName());
+                System.err.println("Could not find latest leaderboard of stat " + statType.niceName());
                 continue;
             }
             int place = leaderboard.getPlace(stats.getUuid());
@@ -173,16 +173,18 @@ public class LeaderboardManager extends DataManager {
         return new AbstractMap.SimpleEntry<>(bestPlace, bestLb);
     }
 
-    public void displayRoles(Stat stat, List<Stat> stats) {
+    public void displayRoles(StatType statType, List<StatType> statTypes) {
         final Guild guild = Main.ljf;
         if (guild == null) {
             System.err.println("Failed to get guild");
             return;
         }
-        Leaderboard leaderboard = getLatestLeaderboard(stat);
+        Leaderboard leaderboard = getLatestLeaderboard(statType);
         for (int i = 1; i < 4; i++) {
             UUID uuid = leaderboard.getUser(i);
-            Map.Entry<Integer, Leaderboard> bestPlace = getLatestBestPlace(StatsManager.get().getStats(uuid), stats);
+            Stats stats1 = StatsManager.get().getStats(uuid);
+            if (stats1 == null) continue;
+            Map.Entry<Integer, Leaderboard> bestPlace = getLatestBestPlace(stats1, statTypes);
             if (bestPlace.getKey() < i) {
                 System.err.println(1);
                 continue;
@@ -193,7 +195,7 @@ public class LeaderboardManager extends DataManager {
             }
             bestPlace.getValue().setRoleGiven(uuid, true);
             if (uuid == null) {
-                System.err.println("Could not find #" + i + " user of stat " + stat.niceName());
+                System.err.println("Could not find #" + i + " user of stat " + statType.niceName());
                 continue;
             }
             User user = UserManager.getUserByUuid(uuid);
@@ -213,7 +215,7 @@ public class LeaderboardManager extends DataManager {
             }
             guild.addRoleToMember(member, role).complete();
             guild.modifyNickname(member, getGuildName(member) + positionEmoji(i)).complete();
-            System.out.println("Modified user " + member.getEffectiveName() + " #" + i + " in " + stat.niceName());
+            System.out.println("Modified user " + member.getEffectiveName() + " #" + i + " in " + statType.niceName());
         }
     }
 
@@ -224,25 +226,25 @@ public class LeaderboardManager extends DataManager {
         return nickName;
     }
 
-    public void save(Stat stat, Leaderboard leaderboard) {
-        save(stat, leaderboard, System.currentTimeMillis());
+    public void save(StatType statType, Leaderboard leaderboard) {
+        save(statType, leaderboard, System.currentTimeMillis());
     }
 
-    public void save(Stat stat, Leaderboard leaderboard, long timeMillis) {
+    public void save(StatType statType, Leaderboard leaderboard, long timeMillis) {
         Map<Long, Leaderboard> statMap;
-        if (!map.containsKey(stat)) {
+        if (!map.containsKey(statType)) {
             statMap = new HashMap<>();
         } else {
-            statMap = map.get(stat);
+            statMap = map.get(statType);
         }
         statMap.put(timeMillis, leaderboard);
-        map.put(stat, statMap);
+        map.put(statType, statMap);
         ObjectNode node = JsonUtil.getObjectNode(file);
         ObjectNode statNode;
-        if (!node.has(stat.name())) {
+        if (!node.has(statType.name())) {
             statNode = JsonNodeFactory.instance.objectNode();
         } else {
-            statNode = (ObjectNode) node.get(stat.name());
+            statNode = (ObjectNode) node.get(statType.name());
         }
         if (Iterators.size(statNode.fieldNames()) > 2) {
             long earliest = -1;
@@ -258,7 +260,7 @@ public class LeaderboardManager extends DataManager {
             if (earliest > 0)
                 statNode.remove(String.valueOf(earliest));
         }
-        node.set(stat.name(), statNode);
+        node.set(statType.name(), statNode);
         ObjectNode userNode = JsonNodeFactory.instance.objectNode();
         for (UUID user : leaderboard.getUsers().keySet()) {
             userNode.set(user.toString(), new IntNode(leaderboard.getPlace(user)));

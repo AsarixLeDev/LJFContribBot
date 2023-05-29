@@ -2,14 +2,14 @@ package ch.asarix.stats.types;
 
 import ch.asarix.Util;
 import ch.asarix.stats.CalculatedStat;
-import ch.asarix.stats.Stat;
+import ch.asarix.stats.StatType;
 import ch.asarix.stats.Stats;
 import ch.asarix.stats.calculated.CalculatedSlayer;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public enum Slayer implements Stat {
+public enum Slayer implements StatType {
     WOLF(1962, 0.015),
     SPIDER(2118, 0.08),
     ZOMBIE(2208, 0.15),

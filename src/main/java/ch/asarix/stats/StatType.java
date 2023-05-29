@@ -1,6 +1,6 @@
 package ch.asarix.stats;
 
-public interface Stat {
+public interface StatType {
     String name();
 
     String niceName();

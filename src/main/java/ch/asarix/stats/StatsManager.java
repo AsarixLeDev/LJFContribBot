@@ -77,6 +77,7 @@ public class StatsManager {
 
     public JsonObject getLatestProfile(UUID uuid) {
         SkyBlockProfilesReply reply = APIManager.get().getSkyBlockProfiles(uuid);
+        if (reply == null) return null;
         JsonArray array = reply.getProfiles();
         if (array == null) {
             System.err.println("No profile reply");

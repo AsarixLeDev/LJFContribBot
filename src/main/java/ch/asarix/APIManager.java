@@ -10,10 +10,13 @@ import net.hypixel.api.reply.skyblock.SkyBlockProfilesReply;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class APIManager extends DataManager {
 
     private static final APIManager instance = new APIManager();
+
+    private final CustomLock lock = new CustomLock();
 
     private final Map<HypixelAPI, Map.Entry<Integer, Long>> apis = new HashMap<>();
 
@@ -54,7 +57,7 @@ public class APIManager extends DataManager {
                 return api;
             }
         }
-        throw new RuntimeException("L'api est trop surchargée ! Veuillez réessayer plus tard.");
+        return getNextAvailableApi();
     }
 
     public PlayerReply getPlayerByUuid(UUID uuid) {
@@ -65,7 +68,12 @@ public class APIManager extends DataManager {
             } catch (ExecutionException | InterruptedException ignored) {
             }
         }
-        throw new RuntimeException("L'api est trop surchargée ! Veuillez réessayer plus tard.");
+        try {
+            return getNextAvailableApi().getPlayerByUuid(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Il y a eu un problème en récupérant l'instance du joueur : " + uuid.toString());
+        }
     }
 
     public GuildReply getGuildByPlayer(UUID uuid) {
@@ -76,10 +84,19 @@ public class APIManager extends DataManager {
             } catch (ExecutionException | InterruptedException ignored) {
             }
         }
-        throw new RuntimeException("L'api est trop surchargée ! Veuillez réessayer plus tard.");
+        try {
+            return getNextAvailableApi().getGuildByPlayer(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Il y a eu un problème en récupérant la guild du joueur : " + uuid.toString());
+        }
     }
 
     public SkyBlockProfilesReply getSkyBlockProfiles(UUID uuid) {
+        if (uuid == null) {
+            System.err.println("Tried to fetch profiles from null uuid");
+            return null;
+        }
         List<HypixelAPI> bestApis = apis.keySet().stream().sorted(Comparator.comparingInt(api -> apis.get(api).getKey())).toList();
         for (HypixelAPI api : bestApis) {
             try {
@@ -87,6 +104,46 @@ public class APIManager extends DataManager {
             } catch (ExecutionException | InterruptedException ignored) {
             }
         }
-        throw new RuntimeException("L'api est trop surchargée ! Veuillez réessayer plus tard.");
+        try {
+            return getNextAvailableApi().getSkyBlockProfiles(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Il y a eu un problème en récupérant le profile du joueur : " + uuid.toString());
+        }
+    }
+
+    private HypixelAPI getNextAvailableApi() {
+        for (int i = 0; i < 20; i++) {
+            List<HypixelAPI> bestApis = apis.keySet().stream().sorted(Comparator.comparingInt(api -> apis.get(api).getKey())).toList();
+            for (HypixelAPI api : bestApis) {
+                try {
+                    api.getPlayerByUuid("8177cfe8-3a1f-4ac8-86b2-8e19dff1c156").get();
+                    return api;
+                } catch (ExecutionException | InterruptedException ignored) {
+                }
+            }
+            try {
+                lock.lock();
+                try {
+                    Thread ownerThread = getOwnerThread();
+                    System.out.println("Owner thread: " + ownerThread.getName());
+                    ownerThread.wait(10_000);
+                } finally {
+                    lock.unlock();
+                }
+            } catch (InterruptedException ignored) {
+            }
+        }
+        throw new RuntimeException("La récupération d'une clé d'api valable a pris trop de temps !");
+    }
+
+    private Thread getOwnerThread() {
+        return lock.getOwnerThread();
+    }
+
+    public static class CustomLock extends ReentrantLock {
+        public Thread getOwnerThread() {
+            return super.getOwner();
+        }
     }
 }

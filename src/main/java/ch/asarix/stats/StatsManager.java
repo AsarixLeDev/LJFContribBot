@@ -63,28 +63,37 @@ public class StatsManager {
 
     public Stats getStats(UUID uuid) {
         Stats stats = getCachedStats(uuid);
-        if (stats != null) return stats;
+        if (stats != null) {
+            System.out.println("Found cached stats");
+            return stats;
+        }
         JsonObject profile = getLatestProfile(uuid);
-        if (profile == null) return null;
+        if (profile == null) {
+            System.err.println("No latest profile");
+            return null;
+        }
         return getStats(uuid, profile);
     }
 
     public JsonObject getLatestProfile(UUID uuid) {
         SkyBlockProfilesReply reply = APIManager.get().getSkyBlockProfiles(uuid);
         JsonArray array = reply.getProfiles();
-        if (array == null) return null;
-        JsonObject latestProfile = null;
-        long latest_save = 0;
+        if (array == null) {
+            System.err.println("No profile reply");
+            return null;
+        }
+        System.out.println(array.size());
         for (int i = 0; i < array.size(); i++) {
             JsonObject profile = array.get(i).getAsJsonObject();
-            if (!profile.has("last_save")) continue;
-            long lastSave = profile.get("last_save").getAsLong();
-            if (lastSave > latest_save) {
-                latestProfile = profile;
-                latest_save = lastSave;
+            if (!profile.has("selected")) {
+                System.err.println("No selected field");
+                continue;
+            }
+            if (profile.get("selected").getAsBoolean()) {
+                return profile;
             }
         }
-        return latestProfile;
+        return null;
     }
 
     public Stats getStats(UUID uuid, JsonObject profile) {

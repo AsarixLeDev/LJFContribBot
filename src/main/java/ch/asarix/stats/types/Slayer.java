@@ -14,7 +14,9 @@ public enum Slayer implements StatType {
     SPIDER(2118, 0.08),
     ZOMBIE(2208, 0.15),
     ENDERMAN(1430, 0.017),
-    BLAZE(0, 0);
+    BLAZE(0, 0),
+    VAMPIRE(0, 0),
+    UNKNOWN(0, 0);
 
     final int div;
     final double modifier;
@@ -36,6 +38,8 @@ public enum Slayer implements StatType {
             case ZOMBIE -> "Revenant slayer";
             case ENDERMAN -> "Enderman slayer";
             case BLAZE -> "Blaze slayer";
+            case VAMPIRE -> "Vampire Slayer";
+            default -> "Unknown Slayer (new ? omg)";
         };
     }
 

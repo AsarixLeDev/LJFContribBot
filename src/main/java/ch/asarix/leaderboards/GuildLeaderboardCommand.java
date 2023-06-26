@@ -41,6 +41,7 @@ public class GuildLeaderboardCommand extends Command {
             skills.remove(Skill.CARPENTRY);
             statsList.addAll(skills);
             statsList.addAll(Arrays.stream(Slayer.values()).toList());
+            statsList.remove(Slayer.UNKNOWN);
         } else {
             StatType statType = StatsManager.get().fromName(statName);
             if (statType == null) {
